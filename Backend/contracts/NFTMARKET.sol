@@ -74,13 +74,11 @@ function buyNft(uint _tokenId) external payable{
     totalItemSold++;
 }
 
-//ayexi resale wala feature bana ani get all nft ani getall my nft bana ani test grrr
-
 function reListNft(uint _nftTokenId , uint _newPrice) external {
     NFTListing storage nftToSale = nft[_nftTokenId];
 
     require(nftToSale.owner == msg.sender , "U cant resale others nft");
-require(_newPrice>=0.002 ether , "Price must be greater than 0.002 ether");
+require(_newPrice >= 0.002 ether , "Price must be greater than 0.002 ether");
 
 nftToSale.currentBid = _newPrice;
 nftToSale.isListed=true;

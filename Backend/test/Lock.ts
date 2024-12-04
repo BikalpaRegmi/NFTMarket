@@ -20,7 +20,7 @@ describe("NFTMARKET", () => {
 
     describe("Getting Nfts", () => {
         it("Should provide one nft if asked", async () => {
-            const res:any = await contract.getANft(0);
+            const res: any = await contract.getANft(0);
             expect(res.isListed).to.eq(true);
             expect(res.originalMinter).to.eq(owner);
             expect(res.currentBid).to.eq(ethers.parseEther("1"));
@@ -37,6 +37,33 @@ describe("NFTMARKET", () => {
         it("Should provide all nft of individual owner", async () => {
             const res = await contract.connect(addr1).getMyNfts();
             expect(res[0].currentBid).to.eq(ethers.parseEther("2"));
-        })
+        });
+    });
+
+    describe("Buying and reListing of nfts", () => {
+        it("Should revert if didnt paid exact price", async () => {
+            await expect(
+                contract
+                    .connect(addr3)
+                    .buyNft(0, { value: ethers.parseEther("3") })
+            ).to.be.revertedWith("u must pay the exact price");
+        });
+
+        it("Should Transfer ownership to new address", async () => {
+            await contract.connect(addr3).buyNft(0, { value: ethers.parseEther("1") });
+            const res = await contract.connect(addr3).getMyNfts();
+            expect(res[0].owner).to.eq(addr3);
+            expect(res[0].isListed).to.eq(false);
+        });
+
+        it("Should set isListed to true if reListed bought nft", async () => {
+                        await contract
+                          .connect(addr3)
+                          .buyNft(0, { value: ethers.parseEther("1") });
+            await contract.connect(addr3).reListNft(0, ethers.parseEther("2"));
+             const res = await contract.connect(addr3).getMyNfts();
+             expect(res[0].owner).to.eq(addr3);
+             expect(res[0].isListed).to.eq(true);
+        });
     })
-});
+}); 
