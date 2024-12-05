@@ -1,7 +1,11 @@
 
+import { Route, Routes } from 'react-router-dom';
 import './App.css'
 import MetamaskConn from './Components/metamaskConn'
+import NavBar from './Components/NavBar';
 import { useEthereum } from './Contexts/contractContext'
+import CreateListing from './pages/listing/CreateListing';
+import Home from './pages/home';
 
 function App() {
   const { account } = useEthereum();
@@ -9,8 +13,13 @@ function App() {
     <>
       {
         account == null ? <MetamaskConn />
-          : (         
-            <p className='text-5xl'>Hello World</p>
+          : (<>         
+            <NavBar/>
+            <Routes>
+              <Route path='/Home' element={ <Home/> } />
+              <Route path='/Listing' element={<CreateListing/> } />
+            </Routes>
+            </>
           )
       }
       
