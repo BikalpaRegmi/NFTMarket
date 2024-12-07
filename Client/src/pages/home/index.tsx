@@ -1,8 +1,11 @@
+import CarouselBAR from "./Carousel"
+import Nfts from "./Nfts"
 
 const Home = () => {
   return (
     <div>
-      Home
+      <CarouselBAR />
+      <Nfts/>
     </div>
   )
 }
