@@ -3,131 +3,102 @@ pragma solidity 0.8.27;
 
 import  "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "hardhat/console.sol";
 
 contract NFTMARKETPLACE is ERC721URIStorage{
-    address payable public marketPlaceOwner;
-    uint256 listingFee = 0.001 ether;
-    uint private currentToken ;
-    uint private totalItemSold ;
-
-    struct NFTListing {
-        uint tokenId;
-        address payable originalMinter;
-        address payable owner;
-        uint currentBid ;
-        uint royaltiesPercentage;
-        bool isListed;
-    }
-
-    mapping(uint=>NFTListing) private nft ;
-
-    constructor() ERC721("NFTMARKETPLACE" , "NFTS"){
-        marketPlaceOwner = payable(msg.sender);
-    }
-
-    modifier OnlyOwner {
-        require(msg.sender == marketPlaceOwner , "U R NOT THE OWNER");
-        _; 
-    }
-
-function getANft(uint _tokenId) external view returns (NFTListing memory) {
-    return nft[_tokenId];
+    address payable marketPlaceOwner;
+    uint private ListingFee = 0.001 ether ;
+    
+struct NftListing {
+uint startPrice;
+uint currentPrice;
+uint biddingTime;
+uint royaltyFee;
+uint tokenId;
+bool isListed;
+address payable owner;
+address highestBidder;
+address payable minter;
 }
 
-function _createNftListing(uint _tokenId , uint _price , uint _royalties) internal {
-    require(_royalties<49 , "Royalties is too high");
+mapping(uint=>NftListing) private nft;
+uint private nftCount ;
 
-  NFTListing memory nftList = NFTListing(_tokenId ,payable(msg.sender), payable(msg.sender), _price, _royalties,true);
-  nft[_tokenId] = nftList;
-  
+constructor() ERC721("NFTMARKETPLACE" , "NFTS") {
+marketPlaceOwner = payable(msg.sender);
 }
 
-function createToken(string memory _tokenURI , uint _price , uint _royalties) external returns(uint){
-require(_price>0.002 ether , "Price must be greater than 0.002 eth");
+function createNftListing(uint _strtPrice , uint _royalty , string memory _tokenURI) external payable{
+require(_royalty<=50 , 'royalty percent cant be more than fifty');
+require(_strtPrice >= 0.002 ether , "Start price must be atleast 0.002 eth");
 
-uint newTokenId = currentToken;
-_safeMint(msg.sender , newTokenId);
-_setTokenURI(newTokenId , _tokenURI);
+_safeMint(msg.sender , nftCount);
+_setTokenURI(nftCount, _tokenURI);
 
-_createNftListing(newTokenId , _price , _royalties);
-currentToken++;
+NftListing memory setNft = NftListing(_strtPrice ,_strtPrice, block.timestamp , _royalty, nftCount, true , payable(msg.sender) ,address(0), payable(msg.sender) );
+nft[nftCount] = setNft;
 
-return newTokenId;
+marketPlaceOwner.transfer(msg.value);
+
+nftCount++;
 }
 
-function buyNft(uint _tokenId) external payable{
-    NFTListing storage sellNft = nft[_tokenId];
-    require(msg.value == sellNft.currentBid ,"u must pay the exact price");
-
-    _transfer(sellNft.owner,msg.sender,_tokenId);
-
-   marketPlaceOwner.transfer(listingFee);
-
-   uint royalTiesFee = (sellNft.royaltiesPercentage * sellNft.currentBid)/100 ;
-   sellNft.originalMinter.transfer(royalTiesFee);
-
-   sellNft.owner.transfer(sellNft.currentBid-listingFee-royalTiesFee);
-
-   sellNft.owner = payable(msg.sender);
-   sellNft.isListed=false;
-    totalItemSold++;
+function getANft(uint _tokenId) external view returns(NftListing memory){
+   return nft[_tokenId] ;
 }
 
-function reListNft(uint _nftTokenId , uint _newPrice) external {
-    NFTListing storage nftToSale = nft[_nftTokenId];
+function participateBidding(uint _tokenId) external payable{
+NftListing memory selectedNft = nft[_tokenId];
+require(selectedNft.currentPrice <= msg.value , "U Must Pay Greater Than Previous Bid");
+require(selectedNft.isListed , "The selected nft is not listed");
 
-    require(nftToSale.owner == msg.sender , "U cant resale others nft");
-require(_newPrice >= 0.002 ether , "Price must be greater than 0.002 ether");
-
-nftToSale.currentBid = _newPrice;
-nftToSale.isListed=true;
-} 
-
-function getAllListedNfts() external view returns (NFTListing[] memory){
-    uint listedCount ;
-
-    for(uint i=0 ; i<currentToken ;i++){
-     if(nft[i].isListed==true){
-        listedCount++;
-     }
-    }
-
-    NFTListing[] memory nfts = new NFTListing[](listedCount);
- uint index ;
-
-    for(uint i=0 ; i<listedCount ;i++){
-        if(nft[i].isListed==true){
-            nfts[index]=nft[i];
-            index++;
-        }
-    }
-    return nfts;
+if(selectedNft.highestBidder != address(0)){
+    payable(selectedNft.highestBidder).transfer(selectedNft.currentPrice);
 }
 
-function getMyNfts() external view returns (NFTListing[] memory) {
-    uint myNftsCount;
+selectedNft.currentPrice = msg.value;
+selectedNft.highestBidder = msg.sender;
 
-    for (uint i = 0; i < currentToken; i++) {
-        if (nft[i].owner == msg.sender) {
-            myNftsCount++;
-        }
-    }
-
-    require(myNftsCount > 0, "NO NFT owned");
-
-    NFTListing[] memory myNfts = new NFTListing[](myNftsCount);
-    uint index = 0;
-
-    for (uint i = 0; i < currentToken; i++) {
-        if (nft[i].owner == msg.sender) {
-            myNfts[index] = nft[i];
-            index++; 
-        }
-    }
-
-    return myNfts;
+nft[_tokenId] = selectedNft;
 }
 
+function finalizeBidding(uint _tokenId) external {
+    NftListing memory getNft = nft[_tokenId];
+    require(getNft.isListed == true , "This nft is not listed");
+    require(block.timestamp >= getNft.biddingTime + 1 weeks , "The Bidding time must surpasses one week");
+
+uint royaltyFee = (getNft.royaltyFee * getNft.currentPrice) /  100;
+getNft.minter.transfer(royaltyFee) ;
+getNft.owner.transfer(getNft.currentPrice - royaltyFee) ;
+
+ getNft.owner = payable(getNft.highestBidder);
+ getNft.isListed = false;
+
+ nft[_tokenId] = getNft;
+
+_transfer(ownerOf(_tokenId), getNft.highestBidder, _tokenId);
+
+}
+
+function reList(uint _tokenId) external payable{
+NftListing memory selectedNft = nft[_tokenId];
+
+require(selectedNft.isListed == false , "The selected nft is already listed");
+require(msg.value == 0.001 ether , "The listing fee is 0.001 ether");
+require(selectedNft.owner == msg.sender , "only owner can relist the nft");
+
+selectedNft.isListed = true;
+selectedNft.currentPrice = selectedNft.currentPrice;
+
+marketPlaceOwner.transfer(0.001 ether);
+}
+
+function getAllListedNfts() external view returns (NftListing[] memory){
+NftListing[] memory allNft = new NftListing[](nftCount);
+
+for(uint i=0 ; i<nftCount ; ++i){
+    allNft[i] = nft[i];
+}
+return allNft;
+}
 
 }
