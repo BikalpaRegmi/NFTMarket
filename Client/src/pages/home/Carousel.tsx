@@ -15,7 +15,7 @@ const CarouselBAR = () => {
               {datas.map((curval: string) => {
                   return (<>
                       <div className="grid p-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-2">                       
-                          <img className="md:h-80 sm:h-80 h-40  sm:md:px-20" src={curval} alt="" />
+                          <img className="md:h-80 sm:h-80 p-5  h-40  sm:md:px-20" src={curval} alt="" />
 
                           <div className="text-left flex flex-col gap-3">
                       <h1 className="text-2xl font-bold text-blue-700">Name</h1>
