@@ -1,11 +1,13 @@
 import { useState } from "react"
 import axios from "axios";
   import { ToastContainer, toast } from "react-toastify";
+import { useEthereum } from "../../Contexts/contractContext";
+import { ethers } from "ethers";
 
 interface FormInputType {
   name: string | null;
   description: string | null;
-  price: number | null;
+  price: string | null ;
   Royalty: number | null;
 }
 const CreateListing = () => {
@@ -17,6 +19,7 @@ const CreateListing = () => {
     price: null,
     Royalty: null,
   });
+  const { contract } = useEthereum();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormInout((prev) => ({
@@ -72,7 +75,7 @@ const CreateListing = () => {
         );
         
         const urlLink: string = "https://gateway.pinata.cloud/ipfs/" + urlRes.data.IpfsHash;
-
+        createNft(urlLink);
         console.log(urlLink);
       } catch (error) {
         console.log(error);
@@ -80,8 +83,12 @@ const CreateListing = () => {
     }
   }
 
-  const createNft = (image: string) => {
-  
+  const createNft = async(jsonUrl: string) => {
+  try {
+    await contract?.createNftListing(ethers.parseEther(formInput.price!.toString()), formInput.Royalty, jsonUrl , {value:ethers.parseEther("0.001")});
+  } catch (error) {
+    console.log(error);
+  }
   }
   
   return (

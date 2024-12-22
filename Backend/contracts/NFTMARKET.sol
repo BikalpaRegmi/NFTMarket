@@ -18,6 +18,7 @@ bool isListed;
 address payable owner;
 address highestBidder;
 address payable minter;
+string metaDataUrl;
 }
 
 mapping(uint=>NftListing) private nft;
@@ -34,7 +35,7 @@ require(_strtPrice >= 0.002 ether , "Start price must be atleast 0.002 eth");
 _safeMint(msg.sender , nftCount);
 _setTokenURI(nftCount, _tokenURI);
 
-NftListing memory setNft = NftListing(_strtPrice ,_strtPrice, block.timestamp , _royalty, nftCount, true , payable(msg.sender) ,address(0), payable(msg.sender) );
+NftListing memory setNft = NftListing(_strtPrice ,_strtPrice, block.timestamp , _royalty, nftCount, true , payable(msg.sender) ,address(0), payable(msg.sender),_tokenURI );
 nft[nftCount] = setNft;
 
 marketPlaceOwner.transfer(msg.value);
