@@ -11,7 +11,6 @@ interface FormInputType {
   Royalty: number | null;
 }
 const CreateListing = () => {
-  const [imgUrl, setImgUrl] = useState<string>();
   const [file, setFile] = useState<File | null>();
   const [formInput, setFormInout] = useState<FormInputType>({
     name: null,
@@ -76,7 +75,12 @@ const CreateListing = () => {
         
         const urlLink: string = "https://gateway.pinata.cloud/ipfs/" + urlRes.data.IpfsHash;
         createNft(urlLink);
-        console.log(urlLink);
+        setFormInout({
+          name: null,
+          description: null,
+          price: null,
+          Royalty: null,
+        });
       } catch (error) {
         console.log(error);
       }
