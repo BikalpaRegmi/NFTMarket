@@ -52,10 +52,10 @@ const CarouselBAR = () => {
         })
       );
       const required: any = nearDeadNft.filter(
-        (curval: allNftType) => curval.biddingTime && curval.biddingTime > 0
+        (curval: allNftType) => curval.biddingTime && curval.biddingTime > 0 && curval.isListed
       );
-      setAllNft([...required].slice(0,3));
-    
+      setAllNft([...required].slice(0, 3));
+      
     } catch (error) {
       console.error("Error fetching NFTs:", error);
     }

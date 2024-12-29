@@ -64,25 +64,31 @@ nft[_tokenId] = selectedNft;
 
 function finalizeBidding(uint _tokenId) external {
     NftListing memory getNft = nft[_tokenId];
-    require(getNft.isListed == true , "This nft is not listed");
-    // require(block.timestamp >= getNft.biddingTime + 86400, "The Bidding time must surpasses one week");
+    require(getNft.isListed == true, "This NFT is not listed");
+    // Uncomment and adjust bidding time if needed
+    // require(block.timestamp >= getNft.biddingTime + 604800, "Bidding duration not met");
 
-if(getNft.highestBidder == address(0)){
- getNft.isListed = false;
-}else{
-uint royaltyFee = (getNft.royaltyFee * getNft.currentPrice) /  100;
-getNft.minter.transfer(royaltyFee) ;
-getNft.owner.transfer(getNft.currentPrice - royaltyFee) ;
- getNft.owner = payable(getNft.highestBidder);
- getNft.isListed = false;
+    if (getNft.highestBidder == address(0)) {
+        getNft.isListed = false;
+        getNft.owner = payable(msg.sender);
+    } else {
+        uint royaltyFee = (getNft.royaltyFee * getNft.currentPrice) / 100;
+        uint remainingAmount = getNft.currentPrice - royaltyFee;
+
+        getNft.minter.transfer(royaltyFee);
+
+        getNft.owner.transfer(remainingAmount);
+
+        getNft.owner = payable(getNft.highestBidder);
+        getNft.isListed = false;
+    _transfer(ownerOf(_tokenId), getNft.highestBidder, _tokenId);
+        getNft.highestBidder = address(0);
+    }
+
+    nft[_tokenId] = getNft;
+
 }
 
-
- nft[_tokenId] = getNft;
-
-_transfer(ownerOf(_tokenId), getNft.highestBidder, _tokenId);
-
-}
 
 function reList(uint _tokenId) external payable{
 NftListing memory selectedNft = nft[_tokenId];
@@ -95,6 +101,8 @@ selectedNft.isListed = true;
 selectedNft.currentPrice = selectedNft.currentPrice;
 
 marketPlaceOwner.transfer(0.001 ether);
+
+nft[_tokenId] = selectedNft;
 }
 
 function getAllListedNfts() external view returns (NftListing[] memory){

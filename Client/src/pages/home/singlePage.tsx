@@ -48,7 +48,7 @@ const SinglePage = () => {
         highestBidder: res.highestBidder,
         minter: res.minter,
       };
-    
+      
       setNftDetail(newRes);
     } catch (error) {      
         console.log(error)
@@ -57,15 +57,15 @@ const SinglePage = () => {
   
   const handleFinalize = async () => {
     try {
-      if (Number(nftDetail?.biddingTime) - Math.floor(Date.now() / 1000) > 0) {
-        toast("The nft must be atleast 1 week old");
-      }
-      else {
-        
-        const transaction: any = await contract?.finalizeBidding(nftDetail?.tokenId);
+     
+      
+        const transaction: any = await contract?.finalizeBidding(
+          nftDetail?.tokenId,
+          
+        );
         await transaction.wait();
         navigate(`/myProfile`);
-      }
+      
 
     } catch (error) {
       console.log(error)
