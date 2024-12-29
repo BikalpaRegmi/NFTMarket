@@ -65,14 +65,18 @@ nft[_tokenId] = selectedNft;
 function finalizeBidding(uint _tokenId) external {
     NftListing memory getNft = nft[_tokenId];
     require(getNft.isListed == true , "This nft is not listed");
-    require(block.timestamp >= getNft.biddingTime + 1 weeks , "The Bidding time must surpasses one week");
+    // require(block.timestamp >= getNft.biddingTime + 86400, "The Bidding time must surpasses one week");
 
+if(getNft.highestBidder == address(0)){
+ getNft.isListed = false;
+}else{
 uint royaltyFee = (getNft.royaltyFee * getNft.currentPrice) /  100;
 getNft.minter.transfer(royaltyFee) ;
 getNft.owner.transfer(getNft.currentPrice - royaltyFee) ;
-
  getNft.owner = payable(getNft.highestBidder);
  getNft.isListed = false;
+}
+
 
  nft[_tokenId] = getNft;
 

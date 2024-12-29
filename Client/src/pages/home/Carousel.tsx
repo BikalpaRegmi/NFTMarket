@@ -4,6 +4,7 @@ import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { useEthereum } from "../../Contexts/contractContext";
 import { ethers } from "ethers";
+import { useNavigate } from "react-router-dom";
 
 interface allNftType {
   name: null | string;
@@ -23,14 +24,14 @@ interface allNftType {
 const CarouselBAR = () => {
   const [allNft, setAllNft] = useState<allNftType[]>([]);
   const { contract } = useEthereum();
+  const navigate = useNavigate();
 
   const getAllNft = async () => {
     try {
       const res: any = await contract?.getAllListedNfts();
-      const newRes: allNftType[] = [...res].slice(0, 3);
 
       const nearDeadNft: allNftType[] = await Promise.all(
-        newRes.map(async (curval: any) => {
+        res.map(async (curval: any) => {
           const link: any = await fetch(curval.metaDataUrl);
           const metaData: any = await link.json();
           const currentUnixTime = Math.floor(Date.now() / 1000);
@@ -39,7 +40,7 @@ const CarouselBAR = () => {
             desc: metaData.description,
             image: metaData.image,
             owner: curval.owner,
-            biddingTime: (Number(curval.biddingTime)+(86400*6)-3600) - currentUnixTime , 
+            biddingTime: (Number(curval.biddingTime)+(86400*7)) - currentUnixTime , 
             startPrice: Number(curval.startPrice),
             currentPrice: Number(curval.currentPrice),
             royaltyFee: Number(curval.royaltyFee),
@@ -50,7 +51,11 @@ const CarouselBAR = () => {
           };
         })
       );
-      setAllNft(nearDeadNft);
+      const required: any = nearDeadNft.filter(
+        (curval: allNftType) => curval.biddingTime && curval.biddingTime > 0
+      );
+      setAllNft([...required].slice(0,3));
+    
     } catch (error) {
       console.error("Error fetching NFTs:", error);
     }
@@ -123,7 +128,7 @@ const CarouselBAR = () => {
               <p className="text-red-500">
                 Time Left: <b>{formattedTimeLeft(curval.biddingTime) }</b>
               </p>
-              <button className="bg-blue-800 text-white text-xl rounded-xl hover:font-bold w-40">
+              <button onClick={()=>navigate(`/SingleNft/${curval.tokenId}`)} className="bg-blue-800 text-white text-xl rounded-xl hover:font-bold w-40">
                 Bid Now
               </button>
             </div>

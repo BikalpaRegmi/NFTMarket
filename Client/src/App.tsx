@@ -8,6 +8,7 @@ import CreateListing from './pages/listing/CreateListing';
 import Home from './pages/home';
 import MyProfile from './pages/myProfile';
 import CheckOut from './pages/myProfile/CheckOut';
+import SinglePage from './pages/home/singlePage';
 
 function App() {
   const { account } = useEthereum();
@@ -22,6 +23,7 @@ function App() {
               <Route path='/Listing' element={<CreateListing/> } />
               <Route path='/myProfile' element={<MyProfile/> } />
               <Route path='/myProfile/:id' element={<CheckOut/> } />
+              <Route path='/SingleNft/:id' element={<SinglePage/> } />
             </Routes>
             </>
           )
