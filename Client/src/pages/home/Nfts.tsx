@@ -30,7 +30,7 @@ const Nfts = () => {
 
       const nftData: allNftType[] = await Promise.all(
         res.map(async (curval: any) => {
-          const response: any = await fetch(curval.metaDataUrl);
+          const response: any = await fetch(curval.metaDataUrl );
           const metaData: any = await response.json();
 
           if (curval.isListed) {

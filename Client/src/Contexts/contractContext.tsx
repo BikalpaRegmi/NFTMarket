@@ -28,7 +28,7 @@ export const EthereumContextProvider = ({ children }: any) => {
         if (!window.ethereum) alert("Plz Install Metamask First");
 
         const contractAddress: string =
-          "0x59b670e9fA9D0A427751Af201D676719a970857b";
+          "0x45947C73F39bD88dD168c1244A3a169cE08DdB91";
         const contractAbi: any = abi.abi;
 
         try {
